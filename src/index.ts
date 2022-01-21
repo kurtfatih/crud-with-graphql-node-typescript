@@ -8,8 +8,38 @@ import {
   Query,
   Resolver,
   buildSchema,
-  Arg
+  Arg,
+  Mutation,
+  InputType
 } from "type-graphql"
+
+@InputType({ description: "add book" })
+class AddBookInput implements Partial<Book> {
+  @Field()
+  bookId: string
+  @Field()
+  author: string
+  @Field()
+  title: string
+}
+@InputType({ description: "update book data by Id " })
+class UpdateBookInput implements Partial<Book> {
+  @Field()
+  author: string
+
+  @Field()
+  title: string
+}
+
+@ObjectType()
+class Book {
+  @Field(() => ID)
+  bookId: string
+  @Field()
+  title: string
+  @Field()
+  author: string
+}
 
 const books = [
   {
@@ -24,27 +54,38 @@ const books = [
   }
 ]
 
-@ObjectType()
-class Book {
-  @Field(() => ID)
-  bookId: string
-  @Field()
-  title: string
-  @Field()
-  author: string
-}
-
 @Resolver(Book)
 class BookResolver {
-  private booksCollection: Book[] = []
   @Query(() => [Book])
   books() {
     return books
   }
 
   @Query(() => Book)
-  getById(@Arg("id") id: string) {
+  getBooksById(@Arg("id") id: string) {
     return books.filter(({ bookId }) => bookId === id)[0]
+  }
+  @Mutation(() => [Book])
+  deleteBooksById(@Arg("id") id: string): [Book] {
+    const deleteArr = books.filter(({ bookId }) => bookId !== id) as [Book]
+    return deleteArr
+  }
+
+  @Mutation(() => [Book])
+  addBook(@Arg("data") data: AddBookInput): [Book] {
+    const arr = [...books, data] as [Book]
+    return arr
+  }
+  @Mutation(() => [Book])
+  updateBookById(
+    @Arg("id") id: string,
+    @Arg("updateInput") updateFields: UpdateBookInput
+  ): [Book] {
+    const arrIndex = books.findIndex(({ bookId }) => bookId === id)
+    let shallowArr = [...books] as [Book]
+    shallowArr[arrIndex] = { ...shallowArr[arrIndex], ...updateFields }
+
+    return shallowArr
   }
 }
 // const typeDefs = gql`
