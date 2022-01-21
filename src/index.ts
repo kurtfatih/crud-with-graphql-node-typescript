@@ -1,4 +1,5 @@
 import { ApolloServer } from "apollo-server"
+import { createClient } from "redis"
 import "reflect-metadata"
 import {
   ObjectType,
@@ -59,6 +60,14 @@ class BookResolver {
 
 const main = async () => {
   try {
+    const client = createClient()
+    client.on("err", (err) => console.log("Redis client error ", err))
+    await client.connect()
+    await client.set("key", "test value")
+    const value = await client.get("key")
+
+    console.log(value)
+
     const schema = await buildSchema({
       resolvers: [BookResolver]
     })
