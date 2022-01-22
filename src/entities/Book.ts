@@ -6,7 +6,7 @@ import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 export class Book extends BaseEntity {
   @Field()
   @PrimaryGeneratedColumn()
-  id!: number
+  id!: string
 
   @Column()
   @Field(() => String)

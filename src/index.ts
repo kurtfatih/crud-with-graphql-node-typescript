@@ -8,12 +8,15 @@ import {
   Resolver,
   buildSchema,
   Arg,
+  Ctx,
   Mutation,
   InputType
 } from "type-graphql"
 import { createConnection, getConnection } from "typeorm"
+import { ContextTypes } from "./context/types"
 import { Book } from "./entities/Book"
 
+const DEFAULT_EXPIRE_SECOND = 3600
 @InputType({ description: "book input" })
 class BookInput {
   @Field()
@@ -25,20 +28,34 @@ class BookInput {
 @Resolver(Book)
 class BookResolver {
   @Query(() => [Book])
-  async books() {
-    const books = await Book.createQueryBuilder("books").getMany()
-    return books
+  async books(@Ctx() { redis }: ContextTypes) {
+    const checkRedis = await redis.get("books")
+    if (!checkRedis) {
+      const books = await Book.createQueryBuilder("books").getMany()
+      await redis.setEx("books", DEFAULT_EXPIRE_SECOND, JSON.stringify(books))
+      return books
+    } else {
+      console.log("cached")
+      const res = JSON.parse(checkRedis) as [Book]
+      console.log(res)
+      return res
+    }
   }
 
   @Mutation(() => Book)
-  async getBookById(@Arg("id") id: number) {
+  async getBookById(@Arg("id") id: string) {
     const book = await Book.findOne({ id })
     return book
   }
 
   @Mutation(() => Boolean)
-  async deleteBooksById(@Arg("id") id: number): Promise<boolean> {
+  async deleteBooksById(@Arg("id") id: string): Promise<boolean> {
     await Book.delete(id)
+    return true
+  }
+  @Mutation(() => Boolean)
+  async deleteAllBooks(): Promise<boolean> {
+    await Book.createQueryBuilder().delete().execute()
     return true
   }
   @Mutation(() => Book)
@@ -50,7 +67,7 @@ class BookResolver {
 
   @Mutation(() => Boolean)
   async updateBookById(
-    @Arg("id") id: number,
+    @Arg("id") id: string,
     @Arg("updateInput") updateFields: BookInput
   ): Promise<boolean> {
     await Book.update(id, updateFields)
@@ -63,7 +80,8 @@ const main = async () => {
     const client = createClient()
     client.on("err", (err) => console.log("Redis client error ", err))
     await client.connect()
-    await client.set("key", "test value")
+    const asd = await client.set("key", "test value")
+    console.log()
     const value = await client.get("key")
 
     console.log(value)
@@ -73,7 +91,8 @@ const main = async () => {
     })
     await createConnection().then(() => console.log(`🚀  Database ready`))
     const server = new ApolloServer({
-      schema
+      schema,
+      context: { redis: client }
     })
     // The `listen` method launches a web server.
     server.listen().then(({ url }: { url: string }) => {

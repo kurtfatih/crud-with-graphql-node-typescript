@@ -1,3 +1,5 @@
-import { getConnection } from "typeorm"
+import { RedisClientType, RedisModules, RedisScripts } from "redis"
 
-export type DbContextType = { db: typeof getConnection }
+export type ContextTypes = {
+  redis: RedisClientType<RedisModules, RedisScripts>
+}
