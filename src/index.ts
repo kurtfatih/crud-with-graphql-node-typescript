@@ -28,10 +28,10 @@ class BookInput {
 @Resolver(Book)
 class BookResolver {
   @Query(() => [Book])
-  async books(@Ctx() { redis }: ContextTypes) {
+  async getBooks(@Ctx() { redis }: ContextTypes) {
     const checkRedis = await redis.get("books")
     if (!checkRedis) {
-      const books = await Book.createQueryBuilder("books").getMany()
+      const books = await Book.find()
       await redis.setEx("books", DEFAULT_EXPIRE_SECOND, JSON.stringify(books))
       return books
     } else {
