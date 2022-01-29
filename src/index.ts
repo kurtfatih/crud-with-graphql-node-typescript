@@ -28,14 +28,13 @@ class BookInput {
 @Resolver(Book)
 class BookResolver {
   @Query(() => [Book])
-  async getBooks(@Ctx() { redis }: ContextTypes) {
+  async books(@Ctx() { redis }: ContextTypes) {
     const checkRedis = await redis.get("books")
     if (!checkRedis) {
       const books = await Book.find()
       await redis.setEx("books", DEFAULT_EXPIRE_SECOND, JSON.stringify(books))
       return books
     } else {
-      console.log("cached")
       const res = JSON.parse(checkRedis) as [Book]
       console.log(res)
       return res
@@ -43,18 +42,18 @@ class BookResolver {
   }
 
   @Mutation(() => Book)
-  async getBookById(@Arg("id") id: string) {
+  async book(@Arg("id") id: string) {
     const book = await Book.findOne({ id })
     return book
   }
 
   @Mutation(() => Boolean)
-  async deleteBooksById(@Arg("id") id: string): Promise<boolean> {
+  async deleteBook(@Arg("id") id: string): Promise<boolean> {
     await Book.delete(id)
     return true
   }
   @Mutation(() => Boolean)
-  async deleteAllBooks(): Promise<boolean> {
+  async deletesBooks(): Promise<boolean> {
     await Book.createQueryBuilder().delete().execute()
     return true
   }
@@ -66,7 +65,7 @@ class BookResolver {
   }
 
   @Mutation(() => Boolean)
-  async updateBookById(
+  async updateBook(
     @Arg("id") id: string,
     @Arg("updateInput") updateFields: BookInput
   ): Promise<boolean> {
