@@ -1,15 +1,15 @@
-import { ObjectType, Field, ID } from "type-graphql"
+import { ObjectType, Field } from "type-graphql"
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 @ObjectType()
 export class Book extends BaseEntity {
+  @PrimaryGeneratedColumn("uuid")
   @Field()
-  @PrimaryGeneratedColumn()
   id!: string
 
   @Column()
-  @Field(() => String)
+  @Field()
   title: string
 
   @Column()

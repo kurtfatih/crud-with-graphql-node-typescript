@@ -2,7 +2,7 @@
   "type": "postgres",
   "host": "localhost",
   "port": 5432,
-  "username": "fatihkurt",
+  "username": "admin",
   "password": "admin",
   "role": "admin",
   "database": "postgres",

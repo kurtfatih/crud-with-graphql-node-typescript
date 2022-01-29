@@ -1,0 +1,1 @@
+export const DEFAULT_EXPIRE_SECOND = 3600
