@@ -19,7 +19,7 @@ class BookInput {
   title: string
 }
 @Resolver(Book)
-class BookResolver {
+export class BookResolver {
   @Query(() => [Book])
   async books(@Ctx() { redis }: ContextTypes) {
     const checkRedis = await redis.get("books")

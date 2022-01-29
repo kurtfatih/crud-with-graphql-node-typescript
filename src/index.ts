@@ -3,7 +3,7 @@ import { createClient } from "redis"
 import "reflect-metadata"
 import { buildSchema } from "type-graphql"
 import { createConnection } from "typeorm"
-import { Book } from "./entities/Book"
+import { BookResolver } from "./resolvers/BookResolver"
 
 const main = async () => {
   try {
@@ -16,7 +16,7 @@ const main = async () => {
     await client.connect()
 
     const schema = await buildSchema({
-      resolvers: [Book]
+      resolvers: [BookResolver]
     })
     const server = new ApolloServer({
       schema,
